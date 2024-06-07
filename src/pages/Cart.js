@@ -3,6 +3,7 @@ import SummaryApi from '../common'
 import Context from '../context'
 import displayINRCurrency from '../helpers/displayCurrency'
 import { MdDelete } from "react-icons/md";
+import { loadStripe } from '@stripe/stripe-js';
 
 const Cart = () => {
     const [data,setData] = useState([])
@@ -115,6 +116,32 @@ const Cart = () => {
 
     const totalQty = data.reduce((previousValue,currentValue)=> previousValue + currentValue.quantity,0)
     const totalPrice = data.reduce((preve,curr)=> preve + (curr.quantity * curr?.productId?.sellingPrice) ,0)
+
+    // stripe intergration
+    const makePayment = async()=>{
+       const stripe = await loadStripe("pk_test_51P6saN02r5xHCYs7Yk0tR2sJHxVd4MKnOhTyXebfnCa0dCHIbGEILFTlZjo4HlanXNeqDZkEbr8RInhBnv6JBJpu000RjsyJKn")
+       const body = {
+        products: Cart
+       }
+       const headers={
+        "Content-Type":"application/json"
+       }
+       const response = await fetch(SummaryApi.makePayment.url,{
+        method : "POST", // SummaryApi.makePayment.method,
+        headers : headers,
+        body : JSON.stringify(body) 
+       })
+
+       const session = await response.json();
+
+       const result = stripe.redirectToCheckout({
+         sessionId:session.id
+       });
+
+       if (result.error) {
+        console.log(result.error);
+       }
+    }
   return (
     <div className='container mx-auto'>
         
@@ -191,7 +218,7 @@ const Cart = () => {
                                         <p>{displayINRCurrency(totalPrice)}</p>    
                                     </div>
 
-                                    <button className='bg-blue-600 p-2 text-white w-full mt-2'>Payment</button>
+                                    <button onClick={makePayment} className='bg-blue-600 p-2 text-white w-full mt-2'>Proceed to checkout</button>
 
                                 </div>
                             )

@@ -33,7 +33,7 @@ const CategroyWiseProductDisplay = ({category, heading}) => {
 
     useEffect(()=>{
         fetchData()
-    },[])
+    },[category])
 
 
 
